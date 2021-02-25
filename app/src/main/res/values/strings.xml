@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">PucMunch</string>
     <string name="noAcelerometer">Su dispositivo no dispone de acelerometro. La aplicacion se cerrará</string>
+    <string name="pointCounterText">Points:</string>
 </resources>

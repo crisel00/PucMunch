@@ -9,7 +9,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.PucMunch">
-        <activity android:name=".Game_Action"></activity>
+        <activity android:name=".Game_Action" android:screenOrientation="portrait"></activity>
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -30,7 +31,7 @@ public class Game_Action extends AppCompatActivity implements SensorEventListene
     private int POINTX = 50;
     private int POINTY = 150;
 
-    private int BALL_COLOR = Color.BLUE;
+    private int BALL_COLOR = Color.YELLOW;
     private int BALL_RADIUS = 50;
     private int BALL_SPEED = 5;
 
@@ -91,11 +92,12 @@ public class Game_Action extends AppCompatActivity implements SensorEventListene
             mueveBola(sensorEvent);
             if(compruebaObjetivo()){
                 if(points == 0){
-                    //iniciaCronometro(INITIAL_TIME);
+                    //TODO iniciaCronometro(INITIAL_TIME);
                     points++;
                 }
             };
         }
+        mainCanvas.invalidate();
     }
 
     private boolean compruebaObjetivo() {
@@ -125,7 +127,7 @@ public class Game_Action extends AppCompatActivity implements SensorEventListene
             ballY -= sensorEvent.values[1]*(BALL_SPEED+BORDER_RESISTANCE);
         }
 
-        mainCanvas.invalidate();
+
     }
 
     @Override
@@ -134,7 +136,7 @@ public class Game_Action extends AppCompatActivity implements SensorEventListene
     }
 
 
-    class MainCanvas extends SurfaceView {
+    class MainCanvas extends View {
 
         public MainCanvas(Context context) {
             super(context);
@@ -143,8 +145,34 @@ public class Game_Action extends AppCompatActivity implements SensorEventListene
         @Override
         protected void onDraw(Canvas canvas) {
             super.onDraw(canvas);
+            Paint pincel = new Paint();
 
+            //Primero dibujo el fondo
+            pincel.setColor(BACKGROUND_COLOR);
+            pincel.setStrokeWidth(1);
 
+            canvas.drawRect(0,0,width,height,pincel);
+
+            //Luego dibuja la bola
+            pincel.setColor(BALL_COLOR);
+            canvas.drawCircle(ballX, ballY, BALL_RADIUS, pincel);
+
+            pincel.setStyle(Paint.Style.STROKE);
+            //Luego dibujo el objetivo
+            pincel.setColor(OBJECTIVE_COLOR);
+            pincel.setStrokeWidth(OBJECTIVE_BORDER_WITDH);
+            canvas.drawCircle(objectiveX,objectiveY,OBJECTIVE_RADIUS,pincel);
+
+            //Y por ultimo el borde para que este por encima de lo demas
+            pincel.setColor(BORDER_COLOR);
+            pincel.setStrokeWidth(BORDER_WIDTH);
+
+            canvas.drawRect(0,0,width,height,pincel);
+
+            pincel.setColor(POINT_COUNTER_COLOR);
+            pincel.setStyle(Paint.Style.FILL);
+            pincel.setTextSize(100);
+            canvas.drawText(getString(R.string.pointCounterText) + Integer.toString(points),POINTX,POINTY,pincel);
         }
     }
 
