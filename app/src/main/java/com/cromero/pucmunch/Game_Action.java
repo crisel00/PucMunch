@@ -6,7 +6,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -14,36 +13,16 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.view.Display;
-import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Toast;
 
+import com.cromero.pucmunch.control.GenVars;
+import com.cromero.pucmunch.control.TimeCountDown;
+
+import java.sql.Time;
 import java.util.Random;
 
 public class Game_Action extends AppCompatActivity implements SensorEventListener {
-
-    //segundos iniciales en el cronometro
-    private static final int INITIAL_TIME = 30;
-
-    private int BACKGROUND_COLOR = Color.BLACK;
-
-    private int POINT_COUNTER_COLOR = Color.WHITE;
-    private int POINTX = 50;
-    private int POINTY = 150;
-
-    private int BALL_COLOR = Color.YELLOW;
-    private int BALL_RADIUS = 50;
-    private int BALL_SPEED = 5;
-
-    private int BORDER_COLOR = Color.parseColor("#4B0082");
-    private int BORDER_WIDTH = 50;
-    private int BORDER_RESISTANCE = 2;
-
-    private int OBJECTIVE_RADIUS = 10;
-    private int OBJECTIVE_COLOR = Color.WHITE;
-    private int OBJECTIVE_BORDER_WITDH = 20;
-    private int OBJECTIVE_MAGNET = 10;
-    private int OBJECTIVE_MARGIN = 30;
 
     protected MainCanvas mainCanvas;
 
@@ -60,6 +39,9 @@ public class Game_Action extends AppCompatActivity implements SensorEventListene
     float objectiveY;
 
     public int points = 0;
+
+    public TimeCountDown count = new TimeCountDown(GenVars.INITIAL_TIME);
+    Thread countTr = new Thread(count);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,39 +74,37 @@ public class Game_Action extends AppCompatActivity implements SensorEventListene
             mueveBola(sensorEvent);
             if(compruebaObjetivo()){
                 if(points == 0){
-                    //TODO iniciaCronometro(INITIAL_TIME);
-                    points++;
+                    countTr.start();
+                    victoria();
+                } else {
+                    victoria();
                 }
-            };
+            }
         }
         mainCanvas.invalidate();
     }
 
     private boolean compruebaObjetivo() {
-        if((ballY+BALL_RADIUS >= objectiveY-OBJECTIVE_MAGNET && ballY-BALL_RADIUS < objectiveY+OBJECTIVE_MAGNET) &&(ballX+BALL_RADIUS >= objectiveX-OBJECTIVE_MAGNET && ballX-BALL_RADIUS < objectiveX+OBJECTIVE_MAGNET)){
-            //points++;
-            //Toast.makeText(this,Integer.toString(points),Toast.LENGTH_SHORT).show();
-            return true;
-        } else {return false;}
+        return (ballY + GenVars.BALL_RADIUS >= objectiveY - GenVars.OBJECTIVE_MAGNET && ballY - GenVars.BALL_RADIUS < objectiveY + GenVars.OBJECTIVE_MAGNET) && (ballX + GenVars.BALL_RADIUS >= objectiveX - GenVars.OBJECTIVE_MAGNET && ballX - GenVars.BALL_RADIUS < objectiveX + GenVars.OBJECTIVE_MAGNET);
     }
 
     private void victoria() {
         points++;
 
-        objectiveX = (new Random().nextFloat()*(width-OBJECTIVE_RADIUS-(OBJECTIVE_MARGIN*2)))+OBJECTIVE_MARGIN+OBJECTIVE_RADIUS;
-        objectiveY = (new Random().nextFloat()*(height-OBJECTIVE_RADIUS-(OBJECTIVE_MARGIN*2)))+OBJECTIVE_MARGIN+OBJECTIVE_RADIUS;
+        objectiveX = (new Random().nextFloat()*(width-GenVars.OBJECTIVE_RADIUS-(GenVars.OBJECTIVE_MARGIN*2)))+GenVars.OBJECTIVE_MARGIN+GenVars.OBJECTIVE_RADIUS;
+        objectiveY = (new Random().nextFloat()*(height-GenVars.OBJECTIVE_RADIUS-(GenVars.OBJECTIVE_MARGIN*2)))+GenVars.OBJECTIVE_MARGIN+GenVars.OBJECTIVE_RADIUS;
     }
 
     private void mueveBola(SensorEvent sensorEvent) {
 
-        ballX = ballX - sensorEvent.values[0]*BALL_SPEED;
-        ballY = ballY + sensorEvent.values[1]*BALL_SPEED;
+        ballX = ballX - sensorEvent.values[0]*GenVars.BALL_SPEED;
+        ballY = ballY + sensorEvent.values[1]*GenVars.BALL_SPEED;
 
-        if(ballX <= BALL_RADIUS || ballX >= width-BALL_RADIUS){
-            ballX += sensorEvent.values[0]*(BALL_SPEED+BORDER_RESISTANCE);
+        if(ballX <= GenVars.BALL_RADIUS || ballX >= width-GenVars.BALL_RADIUS){
+            ballX += sensorEvent.values[0]*(GenVars.BALL_SPEED+GenVars.BORDER_RESISTANCE);
         }
-        if(ballY <=BALL_RADIUS || ballY >= height-BALL_RADIUS){
-            ballY -= sensorEvent.values[1]*(BALL_SPEED+BORDER_RESISTANCE);
+        if(ballY <=GenVars.BALL_RADIUS || ballY >= height-GenVars.BALL_RADIUS){
+            ballY -= sensorEvent.values[1]*(GenVars.BALL_SPEED+GenVars.BORDER_RESISTANCE);
         }
 
 
@@ -148,31 +128,35 @@ public class Game_Action extends AppCompatActivity implements SensorEventListene
             Paint pincel = new Paint();
 
             //Primero dibujo el fondo
-            pincel.setColor(BACKGROUND_COLOR);
+            pincel.setColor(GenVars.BACKGROUND_COLOR);
             pincel.setStrokeWidth(1);
 
             canvas.drawRect(0,0,width,height,pincel);
 
             //Luego dibuja la bola
-            pincel.setColor(BALL_COLOR);
-            canvas.drawCircle(ballX, ballY, BALL_RADIUS, pincel);
+            pincel.setColor(GenVars.BALL_COLOR);
+            canvas.drawCircle(ballX, ballY, GenVars.BALL_RADIUS, pincel);
 
             pincel.setStyle(Paint.Style.STROKE);
             //Luego dibujo el objetivo
-            pincel.setColor(OBJECTIVE_COLOR);
-            pincel.setStrokeWidth(OBJECTIVE_BORDER_WITDH);
-            canvas.drawCircle(objectiveX,objectiveY,OBJECTIVE_RADIUS,pincel);
+            pincel.setColor(GenVars.OBJECTIVE_COLOR);
+            pincel.setStrokeWidth(GenVars.OBJECTIVE_BORDER_WITDH);
+            canvas.drawCircle(objectiveX,objectiveY,GenVars.OBJECTIVE_RADIUS,pincel);
 
             //Y por ultimo el borde para que este por encima de lo demas
-            pincel.setColor(BORDER_COLOR);
-            pincel.setStrokeWidth(BORDER_WIDTH);
+            pincel.setColor(GenVars.BORDER_COLOR);
+            pincel.setStrokeWidth(GenVars.BORDER_WIDTH);
 
             canvas.drawRect(0,0,width,height,pincel);
 
-            pincel.setColor(POINT_COUNTER_COLOR);
+            pincel.setColor(GenVars.POINT_COUNTER_COLOR);
             pincel.setStyle(Paint.Style.FILL);
             pincel.setTextSize(100);
-            canvas.drawText(getString(R.string.pointCounterText) + Integer.toString(points),POINTX,POINTY,pincel);
+            canvas.drawText(getString(R.string.pointCounterText) + Integer.toString(points),GenVars.POINTX,GenVars.POINTY,pincel);
+
+            pincel.setColor(GenVars.TIMER_COUNTER_COLOR);
+            canvas.drawText(Integer.toString(count.seconds),width - GenVars.TIMERX,GenVars.TIMERY,pincel);
+
         }
     }
 

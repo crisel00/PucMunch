@@ -28,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
     }
 }
 
-/**
+/*
  * TODO Fases del proyecto
  *      (Un pacman se mueve por la pantalla usando el acelerometro, tu mision
  *      es conseguir comer la mayor cantidad de puntos antes de que se agote
@@ -43,6 +43,10 @@ public class MainActivity extends AppCompatActivity {
  *          Titulo del juego en grande
  *
  *      2.Juego
+ *          1.- Dibujar objetos --Hecho (todo añadir imagenes)
+ *          2.- Movimiento Jugador --Hecho
+ *          3.- Puntuacion y objetivo --Hecho
+ *          4.- Temporizador
+ *          5.- Enemigo
  *
- *
- * */
+  */
