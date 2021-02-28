@@ -15,10 +15,12 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.view.Display;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
 
 import com.cromero.pucmunch.control.GenVars;
+import com.cromero.pucmunch.control.RecordData;
 import com.cromero.pucmunch.control.TimeCountDown;
 
 import java.sql.Time;
@@ -103,8 +105,11 @@ public class Game_Action extends AppCompatActivity implements SensorEventListene
     }
 
     private void gameOver() {
-
         GenVars.gameRunning = false;
+
+        if(Integer.parseInt(RecordData.loadData(this)) < points){
+            RecordData.saveData(this, points);
+        }
     }
 
     private boolean compruebaObjetivo() {
@@ -210,11 +215,25 @@ public class Game_Action extends AppCompatActivity implements SensorEventListene
         sensores.registerListener(this,acelerometro,SensorManager.SENSOR_STATUS_ACCURACY_MEDIUM);
     }
 
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if(GenVars.gameRunning == false){
+            if(event.getX() > width/2-130 && event.getX() < height/2+200){
+                if(event.getY() > width/2+170 && event.getY() < height/2+330){
+                    finish();
+                }
+            }
+        }
+        return super.onTouchEvent(event);
+    }
+
     private void initTamanoPantalla(){
         Display display = getWindowManager().getDefaultDisplay();
 
         width = display.getWidth();
         height = display.getHeight();
+        GenVars.width = display.getWidth();
+        GenVars.height = display.getHeight();
     }
 
     private void muestraError(){
