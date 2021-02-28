@@ -6,7 +6,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -43,6 +45,7 @@ public class Game_Action extends AppCompatActivity implements SensorEventListene
     public TimeCountDown count = new TimeCountDown(GenVars.INITIAL_TIME);
     Thread countTr = new Thread(count);
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,6 +66,7 @@ public class Game_Action extends AppCompatActivity implements SensorEventListene
         if(sensores.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null){
             Toast.makeText(this,"Acelerometro encontrado",Toast.LENGTH_SHORT).show();
             acelerometro = sensores.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+            sensores.registerListener(this,acelerometro,SensorManager.SENSOR_STATUS_ACCURACY_MEDIUM);
         } else {
             muestraError();
         }
@@ -70,18 +74,37 @@ public class Game_Action extends AppCompatActivity implements SensorEventListene
 
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
-        if(sensorEvent.sensor.getType() == Sensor.TYPE_ACCELEROMETER){
-            mueveBola(sensorEvent);
-            if(compruebaObjetivo()){
-                if(points == 0){
-                    countTr.start();
-                    victoria();
-                } else {
-                    victoria();
+
+        if(count.seconds < 11){
+            if(count.seconds%2 == 0){
+                GenVars.TIMER_COUNTER_COLOR = Color.WHITE;
+            } else{
+                GenVars.TIMER_COUNTER_COLOR = Color.RED;
+            }
+        }
+        if(GenVars.gameRunning == true && GenVars.gamePaused == false){
+            if(sensorEvent.sensor.getType() == Sensor.TYPE_ACCELEROMETER){
+                mueveBola(sensorEvent);
+                if(compruebaObjetivo()){
+                    if(points == 0){
+                        countTr.start();
+                        victoria();
+                    } else {
+                        victoria();
+                    }
                 }
+            }
+
+            if(count.seconds<1){
+                gameOver();
             }
         }
         mainCanvas.invalidate();
+    }
+
+    private void gameOver() {
+
+        GenVars.gameRunning = false;
     }
 
     private boolean compruebaObjetivo() {
@@ -126,37 +149,52 @@ public class Game_Action extends AppCompatActivity implements SensorEventListene
         protected void onDraw(Canvas canvas) {
             super.onDraw(canvas);
             Paint pincel = new Paint();
+            if(GenVars.gameRunning){
+                //Primero dibujo el fondo
+                pincel.setColor(GenVars.BACKGROUND_COLOR);
+                pincel.setStrokeWidth(1);
 
-            //Primero dibujo el fondo
-            pincel.setColor(GenVars.BACKGROUND_COLOR);
-            pincel.setStrokeWidth(1);
+                canvas.drawRect(0,0,width,height,pincel);
 
-            canvas.drawRect(0,0,width,height,pincel);
+                //Luego dibuja la bola
+                pincel.setColor(GenVars.BALL_COLOR);
+                canvas.drawCircle(ballX, ballY, GenVars.BALL_RADIUS, pincel);
 
-            //Luego dibuja la bola
-            pincel.setColor(GenVars.BALL_COLOR);
-            canvas.drawCircle(ballX, ballY, GenVars.BALL_RADIUS, pincel);
+                pincel.setStyle(Paint.Style.STROKE);
+                //Luego dibujo el objetivo
+                pincel.setColor(GenVars.OBJECTIVE_COLOR);
+                pincel.setStrokeWidth(GenVars.OBJECTIVE_BORDER_WITDH);
+                canvas.drawCircle(objectiveX,objectiveY,GenVars.OBJECTIVE_RADIUS,pincel);
 
-            pincel.setStyle(Paint.Style.STROKE);
-            //Luego dibujo el objetivo
-            pincel.setColor(GenVars.OBJECTIVE_COLOR);
-            pincel.setStrokeWidth(GenVars.OBJECTIVE_BORDER_WITDH);
-            canvas.drawCircle(objectiveX,objectiveY,GenVars.OBJECTIVE_RADIUS,pincel);
+                //Y por ultimo el borde para que este por encima de lo demas
+                pincel.setColor(GenVars.BORDER_COLOR);
+                pincel.setStrokeWidth(GenVars.BORDER_WIDTH);
 
-            //Y por ultimo el borde para que este por encima de lo demas
-            pincel.setColor(GenVars.BORDER_COLOR);
-            pincel.setStrokeWidth(GenVars.BORDER_WIDTH);
+                canvas.drawRect(0,0,width,height,pincel);
 
-            canvas.drawRect(0,0,width,height,pincel);
+                pincel.setColor(GenVars.POINT_COUNTER_COLOR);
+                pincel.setStyle(Paint.Style.FILL);
+                pincel.setTextSize(100);
+                canvas.drawText(getString(R.string.pointCounterText) + Integer.toString(points),GenVars.POINTX,GenVars.POINTY,pincel);
 
-            pincel.setColor(GenVars.POINT_COUNTER_COLOR);
-            pincel.setStyle(Paint.Style.FILL);
-            pincel.setTextSize(100);
-            canvas.drawText(getString(R.string.pointCounterText) + Integer.toString(points),GenVars.POINTX,GenVars.POINTY,pincel);
+                pincel.setColor(GenVars.TIMER_COUNTER_COLOR);
+                canvas.drawText(Integer.toString(count.seconds),width - GenVars.TIMERX,GenVars.TIMERY,pincel);
+            } else{
+                pincel.setColor(GenVars.GAME_OVER_BUTTON_COLOR);
+                pincel.setStyle(Paint.Style.FILL);
 
-            pincel.setColor(GenVars.TIMER_COUNTER_COLOR);
-            canvas.drawText(Integer.toString(count.seconds),width - GenVars.TIMERX,GenVars.TIMERY,pincel);
+                canvas.drawRect(width/2-130,height/2+200,width/2+170, height/2+330,pincel);
 
+                pincel.setColor(GenVars.POINT_COUNTER_COLOR);
+                pincel.setStyle(Paint.Style.FILL);
+                pincel.setTextSize(100);
+
+                canvas.drawText(getString(R.string.pointCounterText) + Integer.toString(points),width/2-200,height/2+100,pincel);
+
+                canvas.drawText("Menu",width/2-100,height/2+300,pincel);
+
+
+            }
         }
     }
 
