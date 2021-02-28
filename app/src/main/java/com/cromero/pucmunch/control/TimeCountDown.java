@@ -3,6 +3,7 @@ package com.cromero.pucmunch.control;
 public class TimeCountDown implements Runnable{
 
     public int seconds;
+    public boolean started;
 
     public TimeCountDown(int seconds) {
         this.seconds = seconds;
@@ -11,6 +12,7 @@ public class TimeCountDown implements Runnable{
 
     @Override
     public void run() {
+        started = true;
         while(seconds > 0){
             try {
                 seconds--;
@@ -19,5 +21,6 @@ public class TimeCountDown implements Runnable{
                 e.printStackTrace();
             }
         }
+        started = false;
     }
 }

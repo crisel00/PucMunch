@@ -145,6 +145,8 @@ public class Game_Action extends AppCompatActivity implements SensorEventListene
             enemyList.add(new Enemy(1));
         } if(points == 10){
             enemyList.add(new Enemy(2));
+        } if(points == 15){
+            enemyList.add(new Enemy(3));
         }
     }
 
