@@ -4,7 +4,7 @@ import android.graphics.Color;
 
 //Variables generales de juego
 public class GenVars {
-    public static int INITIAL_TIME = 5;
+    public static int INITIAL_TIME = 30;
     public static int TIME_ADD = 2;
 
     public static int BACKGROUND_COLOR = Color.BLACK;
@@ -35,10 +35,9 @@ public class GenVars {
     public static int height;
 
     public static int GAME_OVER_BUTTON_COLOR = Color.BLUE;
-    public static float GAME_OVER_BUTTON_LEFT = width/2-130;
-    public static float GAME_OVER_BUTTON_TOP = height/2+200;
-    public static float GAME_OVER_BUTTON_RIGHT = width/2+170;
-    public static float GAME_OVER_BUTTON_BOTTOM = height/2+330;
+
+    public static float ballX;
+    public static float ballY;
 
     public static boolean gameRunning = true;
     public static boolean gamePaused;

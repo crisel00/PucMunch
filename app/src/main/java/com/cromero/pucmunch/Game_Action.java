@@ -22,8 +22,10 @@ import android.widget.Toast;
 import com.cromero.pucmunch.control.GenVars;
 import com.cromero.pucmunch.control.RecordData;
 import com.cromero.pucmunch.control.TimeCountDown;
+import com.cromero.pucmunch.objects.Enemy;
 
 import java.sql.Time;
+import java.util.ArrayList;
 import java.util.Random;
 
 public class Game_Action extends AppCompatActivity implements SensorEventListener {
@@ -33,11 +35,8 @@ public class Game_Action extends AppCompatActivity implements SensorEventListene
     private SensorManager sensores;
     private Sensor acelerometro;
 
-    public int width;
-    public int height;
-
-    float ballX;
-    float ballY;
+    public static int width;
+    public static int height;
 
     float objectiveX;
     float objectiveY;
@@ -47,6 +46,7 @@ public class Game_Action extends AppCompatActivity implements SensorEventListene
     public TimeCountDown count = new TimeCountDown(GenVars.INITIAL_TIME);
     Thread countTr = new Thread(count);
 
+    public ArrayList<Enemy> enemyList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,8 +60,8 @@ public class Game_Action extends AppCompatActivity implements SensorEventListene
 
         initTamanoPantalla();
 
-        ballX = width/2;
-        ballY = height - height/3;
+        GenVars.ballX = width/2;
+        GenVars.ballY = height - height/3;
         objectiveX = width/2;
         objectiveY = height/3;
 
@@ -76,14 +76,10 @@ public class Game_Action extends AppCompatActivity implements SensorEventListene
 
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
-
-        if(count.seconds < 11){
-            if(count.seconds%2 == 0){
-                GenVars.TIMER_COUNTER_COLOR = Color.WHITE;
-            } else{
-                GenVars.TIMER_COUNTER_COLOR = Color.RED;
-            }
+        for(Enemy ene : enemyList){
+            ene.move();
         }
+
         if(GenVars.gameRunning == true && GenVars.gamePaused == false){
             if(sensorEvent.sensor.getType() == Sensor.TYPE_ACCELEROMETER){
                 mueveBola(sensorEvent);
@@ -95,13 +91,35 @@ public class Game_Action extends AppCompatActivity implements SensorEventListene
                         victoria();
                     }
                 }
+                if(chocaConEnemigo()){
+                    gameOver();
+                }
             }
 
             if(count.seconds<1){
                 gameOver();
             }
         }
+
+        if(count.seconds < 11){
+            if(count.seconds%2 == 0){
+                GenVars.TIMER_COUNTER_COLOR = Color.WHITE;
+            } else{
+                GenVars.TIMER_COUNTER_COLOR = Color.RED;
+            }
+        }
         mainCanvas.invalidate();
+    }
+
+    private boolean chocaConEnemigo() {
+        for(Enemy ene: enemyList){
+            if(GenVars.ballX + GenVars.BALL_RADIUS > ene.coordX - GenVars.BALL_RADIUS && GenVars.ballX - GenVars.BALL_RADIUS < ene.coordX + GenVars.BALL_RADIUS){
+                if(GenVars.ballY + GenVars.BALL_RADIUS > ene.coordY - GenVars.BALL_RADIUS && GenVars.ballY - GenVars.BALL_RADIUS < ene.coordY + GenVars.BALL_RADIUS){
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private void gameOver() {
@@ -113,26 +131,33 @@ public class Game_Action extends AppCompatActivity implements SensorEventListene
     }
 
     private boolean compruebaObjetivo() {
-        return (ballY + GenVars.BALL_RADIUS >= objectiveY - GenVars.OBJECTIVE_MAGNET && ballY - GenVars.BALL_RADIUS < objectiveY + GenVars.OBJECTIVE_MAGNET) && (ballX + GenVars.BALL_RADIUS >= objectiveX - GenVars.OBJECTIVE_MAGNET && ballX - GenVars.BALL_RADIUS < objectiveX + GenVars.OBJECTIVE_MAGNET);
+        return (GenVars.ballY + GenVars.BALL_RADIUS >= objectiveY - GenVars.OBJECTIVE_MAGNET && GenVars.ballY - GenVars.BALL_RADIUS < objectiveY + GenVars.OBJECTIVE_MAGNET) && (GenVars.ballX + GenVars.BALL_RADIUS >= objectiveX - GenVars.OBJECTIVE_MAGNET && GenVars.ballX - GenVars.BALL_RADIUS < objectiveX + GenVars.OBJECTIVE_MAGNET);
     }
 
     private void victoria() {
         points++;
+        count.seconds += 2;
 
         objectiveX = (new Random().nextFloat()*(width-GenVars.OBJECTIVE_RADIUS-(GenVars.OBJECTIVE_MARGIN*2)))+GenVars.OBJECTIVE_MARGIN+GenVars.OBJECTIVE_RADIUS;
         objectiveY = (new Random().nextFloat()*(height-GenVars.OBJECTIVE_RADIUS-(GenVars.OBJECTIVE_MARGIN*2)))+GenVars.OBJECTIVE_MARGIN+GenVars.OBJECTIVE_RADIUS;
+        //new Random().nextInt(3)+1
+        if(points == 5){
+            enemyList.add(new Enemy(1));
+        } if(points == 10){
+            enemyList.add(new Enemy(2));
+        }
     }
 
     private void mueveBola(SensorEvent sensorEvent) {
 
-        ballX = ballX - sensorEvent.values[0]*GenVars.BALL_SPEED;
-        ballY = ballY + sensorEvent.values[1]*GenVars.BALL_SPEED;
+        GenVars.ballX = GenVars.ballX - sensorEvent.values[0]*GenVars.BALL_SPEED;
+        GenVars.ballY = GenVars.ballY + sensorEvent.values[1]*GenVars.BALL_SPEED;
 
-        if(ballX <= GenVars.BALL_RADIUS || ballX >= width-GenVars.BALL_RADIUS){
-            ballX += sensorEvent.values[0]*(GenVars.BALL_SPEED+GenVars.BORDER_RESISTANCE);
+        if(GenVars.ballX <= GenVars.BALL_RADIUS || GenVars.ballX >= width-GenVars.BALL_RADIUS){
+            GenVars.ballX += sensorEvent.values[0]*(GenVars.BALL_SPEED+GenVars.BORDER_RESISTANCE);
         }
-        if(ballY <=GenVars.BALL_RADIUS || ballY >= height-GenVars.BALL_RADIUS){
-            ballY -= sensorEvent.values[1]*(GenVars.BALL_SPEED+GenVars.BORDER_RESISTANCE);
+        if(GenVars.ballY <=GenVars.BALL_RADIUS || GenVars.ballY >= height-GenVars.BALL_RADIUS){
+            GenVars.ballY -= sensorEvent.values[1]*(GenVars.BALL_SPEED+GenVars.BORDER_RESISTANCE);
         }
 
 
@@ -163,7 +188,7 @@ public class Game_Action extends AppCompatActivity implements SensorEventListene
 
                 //Luego dibuja la bola
                 pincel.setColor(GenVars.BALL_COLOR);
-                canvas.drawCircle(ballX, ballY, GenVars.BALL_RADIUS, pincel);
+                canvas.drawCircle(GenVars.ballX, GenVars.ballY, GenVars.BALL_RADIUS, pincel);
 
                 pincel.setStyle(Paint.Style.STROKE);
                 //Luego dibujo el objetivo
@@ -184,6 +209,11 @@ public class Game_Action extends AppCompatActivity implements SensorEventListene
 
                 pincel.setColor(GenVars.TIMER_COUNTER_COLOR);
                 canvas.drawText(Integer.toString(count.seconds),width - GenVars.TIMERX,GenVars.TIMERY,pincel);
+
+                for(Enemy ene : enemyList){
+                    pincel.setColor(ene.color);
+                    canvas.drawCircle(ene.coordX, ene.coordY, GenVars.BALL_RADIUS, pincel);
+                }
             } else{
                 pincel.setColor(GenVars.GAME_OVER_BUTTON_COLOR);
                 pincel.setStyle(Paint.Style.FILL);
